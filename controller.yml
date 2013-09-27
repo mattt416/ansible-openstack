@@ -1,0 +1,9 @@
+---
+- hosts: openstack
+  roles:
+    - base
+    - mysql
+    - rabbitmq
+    - keystone
+    - nova
+    - glance

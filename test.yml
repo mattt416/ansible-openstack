@@ -1,0 +1,61 @@
+---
+- hosts: openstack
+  vars:
+    nova_migration: 161
+    admin_token: ADMIN
+  tasks:
+  - name: install mysql-server
+    apt: pkg=mysql-server state=present
+  - name: ensure mysql is enabled and started
+    # see https://github.com/ansible/ansible/issues/3526
+    #service: name=mysql enabled=yes state=started
+    service: name=mysql enabled=yes
+  - name: create keystone MySQL database
+    mysql_db: name=keystone state=present
+  - name: create keystone MySQL user
+    mysql_user: name=keystone password=keystone priv=keystone.*:ALL state=present
+  - name: install keystone
+    apt: pkg=keystone state=present
+  - name: create /etc/keystone/keystone.conf
+    template: src=/srv/templates/keystone.conf.j2 dest=/etc/keystone/keystone.conf
+    notify:
+      - restart keystone
+  - name: ensure keystone is enabled and running
+    service: name=keystone enabled=yes
+#  - name: create keystone admin role
+#    keystone_user: token=$admin_token role=admin
+  - name: create keystone service tenant
+    keystone_user: token=$admin_token tenant=service
+  - name: create nova MySQL database
+    mysql_db: name=nova state=present
+  - name: create nova MySQL user
+    mysql_user: name=nova password=nova priv=nova.*:ALL state=present
+  - name: install nova-api-os-compute
+    apt: pkg=nova-api-os-compute state=present
+  - name: create /etc/nova/nova.conf
+    template: src=/srv/templates/nova.conf.j2 dest=/etc/nova/nova.conf
+    notify:
+      - restart nova-api-os-compute
+  - name: ensure nova-api-os-compute is enabled and running
+    # see https://github.com/ansible/ansible/issues/3526
+    #service: name=nova-api-os-compute enabled=yes state=started
+    service: name=nova-api-os-compute enabled=yes
+  - name: run nova-manage db version
+    shell: nova-manage db version
+    register: nova_manage_result
+  - name: run nova-manage db sync
+    shell: nova-manage db sync
+    when: nova_manage_result.stdout|int != nova_migration
+  - name: create nova keystone user
+    keystone_user: token=$admin_token user=nova tenant=service password=nova
+  # doesn't look like you can create a role stand-alone
+  - name: create admin role and assign to nova user
+    keystone_user: token=$admin_token role=admin user=nova tenant=service password=nova
+  - name: blah
+    keystone_service: token=$admin_token name=nova type=compute description="Compute Service" public_url="http://127.0.0.1:8774/v2/%(tenant_id)s" internal_url="http://127.0.0.1:8774/v2/%(tenant_id)s" admin_url="http://127.0.0.1:8774/v2/%(tenant_id)s" region=RegionOne
+  
+  handlers:
+    - name: restart nova-api-os-compute
+      service: name=nova-api-os-compute state=restarted
+    - name: restart keystone
+      service: name=keystone state=restarted

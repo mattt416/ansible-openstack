@@ -1,0 +1,41 @@
+---
+# nova-common owns nova.conf, so let's install this first before we overwrite
+- name: install nova-common
+  apt: pkg=nova-common state=present
+- name: create nova MySQL database
+  mysql_db: name=nova state=present
+- name: create nova MySQL user
+  mysql_user: name=nova password=nova priv=nova.*:ALL state=present
+- name: create /etc/nova/nova.conf
+  template: src=nova.conf.j2 dest=/etc/nova/nova.conf
+  notify:
+    - restart nova-api-os-compute
+    - restart nova-compute
+    - restart nova-conductor
+    - restart nova-network
+    - restart nova-scheduler
+- name: create /etc/nova/api-paste.ini
+  template: src=api-paste.ini.j2 dest=/etc/nova/api-paste.ini
+  notify:
+    - restart nova-api-os-compute
+    - restart nova-scheduler
+- name: run nova-manage db version
+  shell: nova-manage db version
+  register: nova_manage_result
+- name: run nova-manage db sync
+  shell: nova-manage db sync
+  when: nova_manage_result.stdout|int != nova_migration
+- name: create nova keystone user
+  keystone_user: token=$admin_token user=$nova_service_user tenant=service password=$nova_service_password
+# doesn't look like you can create a role stand-alone
+# admin role required on a user which needs to validate tokens (service users in this case)
+- name: create admin role and assign to nova user
+  keystone_user: token=$admin_token role=admin user=$nova_service_user tenant=service password=$nova_service_password
+- name: create nova service and compute endpoint
+  keystone_service: token=$admin_token name=nova type=compute description="Compute Service" public_url="$nova_public_url"
+                      internal_url="$nova_internal_url" admin_url="$nova_admin_url" region=RegionOne
+- include: api-os-compute.yml
+- include: scheduler.yml
+- include: compute.yml
+- include: conductor.yml
+- include: network.yml

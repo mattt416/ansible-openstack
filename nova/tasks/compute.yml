@@ -1,0 +1,9 @@
+---
+- name: install nova-compute
+  apt: pkg=nova-compute state=present
+- name: ensure nova-compute is enabled and running
+  service: name=nova-compute enabled=yes state=started
+- name: create /etc/nova/nova-compute.conf
+  template: src=nova-compute.conf.j2 dest=/etc/nova/nova-compute.conf
+  notify:
+    - restart nova-compute

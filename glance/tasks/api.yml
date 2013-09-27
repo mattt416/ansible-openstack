@@ -1,0 +1,9 @@
+---
+- name: install glance-api
+  apt: pkg=glance-api state=present
+- name: create /etc/glance/glance-api.conf
+  template: src=glance-api.conf.j2 dest=/etc/glance/glance-api.conf
+  notify:
+    - restart glance-api
+- name: ensure glance-api is enabled and running
+  service: name=glance-api enabled=yes state=started

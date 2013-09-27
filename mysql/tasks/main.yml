@@ -1,0 +1,8 @@
+---
+# required by mysql_db / mysql_user modules
+- name: install python-mysqldb
+  apt: pkg=python-mysqldb state=present
+- name: install mysql-server
+  apt: pkg=mysql-server state=present
+- name: ensure mysql is enabled and started
+  service: name=mysql enabled=yes state=started

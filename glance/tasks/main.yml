@@ -1,0 +1,13 @@
+---
+- name: create glance keystone user
+  keystone_user: token=$admin_token user=$glance_service_user tenant=service password=$glance_service_password
+# doesn't look like you can create a role stand-alone
+# admin role required on a user which needs to validate tokens (service users in this case)
+- name: create admin role and assign to glance user
+  keystone_user: token=$admin_token role=admin user=$glance_service_user tenant=service password=$glance_service_password
+- name: create glance service and compute endpoint
+  keystone_service: token=$admin_token name=glance type=image description="Image Service" public_url="$glance_public_url"
+                      internal_url="$glance_internal_url" admin_url="$glance_admin_url" region=RegionOne
+- include: registry.yml
+- include: api.yml
+- include: image.yml

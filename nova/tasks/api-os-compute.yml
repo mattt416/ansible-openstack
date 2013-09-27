@@ -1,0 +1,5 @@
+---
+- name: install nova-api-os-compute
+  apt: pkg=nova-api-os-compute state=present
+- name: ensure nova-api-os-compute is enabled and running
+  service: name=nova-api-os-compute enabled=yes state=started

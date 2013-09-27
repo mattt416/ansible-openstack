@@ -1,0 +1,24 @@
+---
+- name: create keystone MySQL database
+  mysql_db: name=keystone state=present
+- name: create keystone MySQL user
+  mysql_user: name=keystone password=keystone priv=keystone.*:ALL state=present
+- name: install keystone
+  apt: pkg=keystone state=present
+- name: create /etc/keystone/keystone.conf
+  template: src=keystone.conf.j2 dest=/etc/keystone/keystone.conf
+  notify:
+    - restart keystone
+- name: ensure keystone is enabled and running
+  service: name=keystone enabled=yes state=started
+# there is no keystone-manage argument to determine current migration version,
+# so this will run each time :-/
+- name: run keystone-manage db_sync
+  shell: keystone-manage db_sync
+- name: create keystone service tenant
+  keystone_user: token=$admin_token tenant={{ item }}
+  with_items:
+    - service
+    - admin
+- name: create admin keystone user
+  keystone_user: token=$admin_token user=admin tenant=admin password=$admin_password

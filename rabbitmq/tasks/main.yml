@@ -1,0 +1,5 @@
+---
+- name: install rabbitmq-server
+  apt: pkg=rabbitmq-server state=present
+- name: ensure rabbitmq-server is enabled and started
+  service: name=rabbitmq-server enabled=yes state=started

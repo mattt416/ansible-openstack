@@ -1,0 +1,5 @@
+---
+- name: install nova-conductor
+  apt: pkg=nova-conductor state=present
+- name: ensure nova-conductor is enabled and running
+  service: name=nova-conductor enabled=yes state=started

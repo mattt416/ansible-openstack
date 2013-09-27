@@ -1,0 +1,7 @@
+---
+glance_migration: 22
+glance_public_url: http://127.0.0.1:9292
+glance_internal_url: http://127.0.0.1:9292
+glance_admin_url: http://127.0.0.1:9292
+glance_service_user: glance
+glance_service_password: glance

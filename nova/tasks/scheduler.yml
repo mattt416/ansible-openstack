@@ -1,0 +1,5 @@
+---
+- name: install nova-scheduler
+  apt: pkg=nova-scheduler state=present
+- name: ensure nova-scheduler is enabled and running
+  service: name=nova-scheduler enabled=yes state=started

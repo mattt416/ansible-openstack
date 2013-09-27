@@ -1,0 +1,5 @@
+---
+- name: install nova-network
+  apt: pkg=nova-network state=present
+- name: ensure nova-network is enabled and running
+  service: name=nova-network enabled=yes state=started

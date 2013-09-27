@@ -1,0 +1,7 @@
+---
+nova_migration: 161
+nova_public_url: http://127.0.0.1:8774/v2/%(tenant_id)s
+nova_internal_url: http://127.0.0.1:8774/v2/%(tenant_id)s
+nova_admin_url: http://127.0.0.1:8774/v2/%(tenant_id)s
+nova_service_user: nova
+nova_service_password: nova

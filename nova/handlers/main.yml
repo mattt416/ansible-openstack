@@ -1,0 +1,11 @@
+---
+- name: restart nova-api-os-compute
+  service: name=nova-api-os-compute state=restarted
+- name: restart nova-scheduler
+  service: name=nova-scheduler state=restarted
+- name: restart nova-compute
+  service: name=nova-compute state=restarted
+- name: restart nova-conductor
+  service: name=nova-conductor state=restarted
+- name: restart nova-network
+  service: name=nova-network state=restarted

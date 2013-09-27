@@ -1,0 +1,22 @@
+---
+- name: create glance MySQL database
+  mysql_db: name=glance state=present
+- name: create glance MySQL user
+  mysql_user: name=glance password=glance priv=glance.*:ALL state=present
+- name: install glance-registry
+  apt: pkg=glance-registry state=present
+- name: create /etc/glance/glance-registry.conf
+  template: src=glance-registry.conf.j2 dest=/etc/glance/glance-registry.conf
+  notify:
+    - restart glance-registry
+- name: ensure glance-registry is enabled and running
+  service: name=glance-registry enabled=yes state=started
+- name: run glance-manage db_version
+  shell: glance-manage db_version
+  # running a db_version on an uninitialized database causes glance-manage to
+  # exit w/ return code 1
+  ignore_errors: True
+  register: glance_manage_result
+- name: run glance-manage db_sync
+  shell: glance-manage db_sync
+  when: glance_manage_result.stdout|int != glance_migration
